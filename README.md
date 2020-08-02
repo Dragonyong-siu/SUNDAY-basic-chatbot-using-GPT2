@@ -1,6 +1,6 @@
 # SUNDAY-basic-chatbot-using-GPT2
 
-I referenced GPT2 architecture Radford et al. (2019), Top-k sampling Fan et al. (2018),  
+I referenced DialoGPT2 architecture, Top-k sampling Fan et al. (2018),  
 nucleus decoding Holtzman et al. (2019), TransferTransfo. (2019) 
 I use dataset :PersonaChat Zhang et al. (2018)
 

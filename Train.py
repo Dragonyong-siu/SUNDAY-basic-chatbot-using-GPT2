@@ -16,8 +16,8 @@ def TRAIN_DEF(dataloader, model, optimizer, device):
     
     optimizer.zero_grad()
     LM_LOGITS, MC_LOGITS = model(input_ids, token_type_ids = token_type_ids)
-    LM_LOGITS = LM_LOGITS.view(-1, 50262, 400)
-    lm_labels = lm_labels.view(-1, 400)
+    LM_LOGITS = LM_LOGITS.view(-1, 50262, 120)
+    lm_labels = lm_labels.view(-1, 120)
     
     LOSS = SUNDAY_Loss(LM_LOGITS, MC_LOGITS, lm_labels, mc_labels)
     LM_Loss = LOSS[1].view(-1) * 0.6

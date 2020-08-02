@@ -1,4 +1,3 @@
-#4. Train
 from tqdm import tqdm
 def TRAIN_DEF(dataloader, model, optimizer, device):
   model.train()

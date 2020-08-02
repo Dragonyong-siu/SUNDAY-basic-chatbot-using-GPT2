@@ -20,7 +20,7 @@ def NEXT_word_index(Logits):
   index_LIST = [First_index, Second_index, Third_index, Fourth_index, Fifth_index]
   INDEX_LIST = []
   for index in index_LIST:
-    if index >= 0.15:
+    if index >= 0.35:
       INDEX_LIST.append(index)
 
   Words_index = random.choice(INDEX_LIST)
@@ -58,11 +58,13 @@ def Make_sample(input_ids, token_type_ids, tokenizer, model):
      Pad_embedding = tokenizer.encode('<pad>')
      Speaker1_embedding = tokenizer.encode('<speaker1>')
      Speaker2_embedding = tokenizer.encode('<speaker2>')
+     Eos_embedding = tokenizer.encode('<eos>')
      pad = []
      speaker1 = []
      speaker2 = []
+     eos = []
      next_words = []
-     while len(pad) <= 2 and len(speaker1) < 1 and len(speaker2) < 1 and len(next_words) <10:
+     while len(pad) <= 2 and len(speaker1) < 1 and len(speaker2) < 1 and len(eos) < 1 and len(next_words) < 20:
        Logits = model(input_ids, token_type_ids = token_type_ids)
        LM_LOGITS = Logits[0]
        next_token_ids = NEXT_word_index(LM_LOGITS)
@@ -75,13 +77,19 @@ def Make_sample(input_ids, token_type_ids, tokenizer, model):
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
        
        elif next_token_ids == Speaker1_embedding:
-         speaker1.append(Speaker1_embedding)
+         speaker1.append(next_token_ids)
          Changed_token_type_ids = token_type_ids.tolist() + [Speaker1_embedding]
          Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
-
+       
        elif next_token_ids == Speaker2_embedding:
-         speaker1.append(Speaker2_embedding)
+         speaker1.append(next_token_ids)
+         Changed_token_type_ids = token_type_ids.tolist() + [Speaker2_embedding]
+         Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
+         token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
+       
+       elif next_token_ids == Eos_embedding:
+         speaker1.append(next_token_ids)
          Changed_token_type_ids = token_type_ids.tolist() + [Speaker2_embedding]
          Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()

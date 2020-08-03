@@ -55,49 +55,54 @@ def Make_sample(input_ids, token_type_ids, tokenizer, model):
   model.eval()
   original_length = len(input_ids.squeeze(0))
   with torch.no_grad():
-     Pad_embedding = tokenizer.encode('<pad>')
-     Speaker1_embedding = tokenizer.encode('<speaker1>')
-     Speaker2_embedding = tokenizer.encode('<speaker2>')
-     Eos_embedding = tokenizer.encode('<eos>')
+     Pad_embedding = tokenizer.encode("<pad>")
+     Speaker1_embedding = tokenizer.encode("<speaker1>")
+     Speaker2_embedding = tokenizer.encode("<speaker2>")
+     Eos_embedding = tokenizer.encode("<eos>")
      pad = []
      speaker1 = []
      speaker2 = []
      eos = []
      next_words = []
-     while len(pad) <= 2 and len(speaker1) < 1 and len(speaker2) < 1 and len(eos) < 1 and len(next_words) < 20:
+     while len(pad) <= 2 and len(speaker1) < 1 and len(speaker2) < 1 and len(eos) < 1:
        Logits = model(input_ids, token_type_ids = token_type_ids)
        LM_LOGITS = Logits[0]
        next_token_ids = NEXT_word_index(LM_LOGITS)
        next_words.append(next_token_ids)
-       input_ids = torch.cat([input_ids, torch.Tensor([[next_token_ids]]).to(device).long()], dim = 1)
-       if next_token_ids == Pad_embedding:
-         pad.append(next_token_ids)
-         Changed_token_type_ids = token_type_ids.tolist() + [Pad_embedding]
+       if next_token_ids == Pad_embedding[0]:
+         pad.append(Pad_embedding)
+         Changed_token_type_ids = token_type_ids.tolist()
          Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
-       
-       elif next_token_ids == Speaker1_embedding:
-         speaker1.append(next_token_ids)
-         Changed_token_type_ids = token_type_ids.tolist() + [Speaker1_embedding]
+         input_ids = input_ids
+         break
+       elif next_token_ids == Speaker1_embedding[0]:
+         speaker1.append(Speaker1_embedding)
+         Changed_token_type_ids = token_type_ids.tolist()
          Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
-       
-       elif next_token_ids == Speaker2_embedding:
-         speaker1.append(next_token_ids)
-         Changed_token_type_ids = token_type_ids.tolist() + [Speaker2_embedding]
+         input_ids = input_ids
+         break
+       elif next_token_ids == Speaker2_embedding[0]:
+         speaker2.append(Speaker2_embedding)
+         Changed_token_type_ids = token_type_ids.tolist()
          Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
-       
-       elif next_token_ids == Eos_embedding:
-         speaker1.append(next_token_ids)
-         Changed_token_type_ids = token_type_ids.tolist() + [Speaker2_embedding]
+         input_ids = input_ids
+         break
+       elif next_token_ids == Eos_embedding[0]:
+         eos.append(Eos_embedding)
+         Changed_token_type_ids = token_type_ids.tolist()
          Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
-       
+         input_ids = input_ids
+         break
        else:
+         next_words.append(next_token_ids)
          Changed_token_type_ids = token_type_ids.tolist() + [Speaker2_embedding]
          Changed_token_type_ids = [y for x in Changed_token_type_ids for y in x]
          token_type_ids = torch.Tensor([Changed_token_type_ids]).to(device).long()
+         input_ids = torch.cat([input_ids, torch.Tensor([[next_token_ids]]).to(device).long()], dim = 1)
   
   changed_length = len(input_ids.squeeze(0))
   Sample_length = changed_length - original_length
@@ -107,6 +112,7 @@ def Make_sample(input_ids, token_type_ids, tokenizer, model):
 def SUNDAY_Converation(Personality, model):
   History = []
   model.eval()
+  model.to(device)
   while True:
     Chat_text = input(">>> ")
     while not Chat_text:
@@ -135,7 +141,6 @@ def SUNDAY_Converation(Personality, model):
         Sample_length = Sample_length2
 
       Sample = tokenizer.decode(sample_ids.squeeze(0).tolist())
-  
     Conversation = tokenizer.decode(sample_ids.squeeze(0)[- Sample_length :])
     History.append(Conversation)
     print(Conversation)
